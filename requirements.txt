@@ -3,5 +3,6 @@ keras
 gym
 opencv-python
 matplotlib
+openai==0.2.8
 gym[atari]
 gym[accept-rom-license]
