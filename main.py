@@ -5,11 +5,31 @@ import preprocess as pp
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import cv2
+
 # Initialize the GPT-3 API
-openai.api_key = 'insert ur api key'
+openai.api_key = 'Insert API key'
+batch_size = 32
+episodes = 10
+
+# Game state preprocessing
+def preprocess(observation):
+
+    if isinstance(observation, tuple):  # Check if observation is a tuple
+        # Assuming the first element of the tuple is the image array
+        image_array = observation[0]
+    else:
+        image_array = observation
+
+    # resize to two dimensions and makes grayscale
+    observation = cv2.cvtColor(cv2.resize(image_array, (108, 118)), cv2.COLOR_BGR2GRAY)
+    # crop image (top is just the score and bottom is activision logo)
+    observation = observation[9:109,8:108]
+    # reshape to 100x100x1 matrix
+    return np.reshape(observation,(100,100,1))
 
 # Function to generate action using GPT-3
-def generate_action(state):
+def act(state):
     start_time = time.time()
 
     response = openai.ChatCompletion.create(
@@ -37,16 +57,6 @@ def generate_action(state):
 
     return action
 
-
-
-def act(state):
-    # Use GPT-3 to generate the action
-    action = generate_action(state)
-    # Convert action to integer if it's a string
-    if isinstance(action, str):
-        action = int(action)
-    return action
-
 # Training phase
 if __name__ == "__main__":
     ENV_NAME = "ALE/Freeway-v5"
@@ -54,18 +64,18 @@ if __name__ == "__main__":
     env = gym.make(ENV_NAME, render_mode='human')
     # initialize seed
     env.seed(123)
-    batch_size = 32
-    episodes = 10
-    state = env.reset()
-    action0 = 0  # do nothing
-    observation0, reward0, terminal,truncated, info = env.step(action0)
-    print("Before processing: " + str(np.array(observation0).shape))
-    plt.imshow(np.array(observation0))
-    plt.show()
-    observation0 = pp.preprocess(observation0)
-    print("After processing: " + str(np.array(observation0).shape))
-    plt.imshow(np.array(np.squeeze(observation0)))
-    plt.show()
+
+    ### To observe how preprocessing works on the first game frame ###
+    # state = env.reset()
+    # action0 = 0  # do nothing
+    # observation0, reward0, terminal,truncated, info = env.step(action0)
+    # print("Before processing: " + str(np.array(observation0).shape))
+    # plt.imshow(np.array(observation0))
+    # plt.show()
+    # observation0 = pp.preprocess(observation0)
+    # print("After processing: " + str(np.array(observation0).shape))
+    # plt.imshow(np.array(np.squeeze(observation0)))
+    # plt.show()
 
     # perform training for episodes
     for e in range(episodes):
