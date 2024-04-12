@@ -1,16 +1,15 @@
 import openai
 import gym
 import re
-import preprocess as pp
 import matplotlib.pyplot as plt
 import numpy as np
 import time
 import cv2
 
 # Initialize the GPT-3 API
-openai.api_key = 'Insert API key'
+openai.api_key = ''
 batch_size = 32
-episodes = 10
+episodes = 1
 
 # Game state preprocessing
 def preprocess(observation):
@@ -72,7 +71,7 @@ if __name__ == "__main__":
     # print("Before processing: " + str(np.array(observation0).shape))
     # plt.imshow(np.array(observation0))
     # plt.show()
-    # observation0 = pp.preprocess(observation0)
+    # observation0 = preprocess(observation0)
     # print("After processing: " + str(np.array(observation0).shape))
     # plt.imshow(np.array(np.squeeze(observation0)))
     # plt.show()
@@ -83,7 +82,7 @@ if __name__ == "__main__":
         print(e)
         state = env.reset()
         # preprocess the game state
-        state = pp.preprocess(state)
+        state = preprocess(state)
 
         # game is not done until time ends
         done = False
@@ -91,22 +90,34 @@ if __name__ == "__main__":
         # current episode's game score
         curr_score = 0
 
+        action_count = 0
+
         while not done:
             env.render()  # Specify the render mode here
             # decide on an action
             action = act(state)
+            action_count += 1  
 
             # Ensure the action is within the valid range
             action = max(0, min(action, env.action_space.n - 1))
 
             # update the game based off of action
             next_state, reward, done, truncated, info = env.step(action)
+
+            if done == True:
+                print('Chicken died!')
             # reward is only one if chicken crossed the road, 0 otherwise
-            next_state = pp.preprocess(next_state)
+            next_state = preprocess(next_state)
             curr_score += reward
 
             # update state
             state = next_state
+
+            if reward == 1:
+                print("Chicken crossed the road!")
+                print(action_count)
+                done = True
+                
 
         # once the game finishes (time runs out), output the game score
         print("episode: {}/{}, score: {}".format(e, episodes, curr_score))
