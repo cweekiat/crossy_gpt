@@ -2,33 +2,41 @@ import openai
 import gym
 import re
 import preprocess as pp
-
+import matplotlib.pyplot as plt
+import numpy as np
+import time
 # Initialize the GPT-3 API
-openai.api_key = ''
+openai.api_key = 'insert ur api key'
 
 # Function to generate action using GPT-3
 def generate_action(state):
+    start_time = time.time()
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are playing an Atari Freeway game. \
                                             The state of the game is represented by a 100x100x1 image. \
                                             In the action space, 0 means no operation, 1 means move up, and 2 means move down. \
-                                            The goal is to help the chicken cross the road as fast as possible. \
+                                            The goal is to help the chicken cross the road (top of the image) as fast as possible. \
                                             Only return an integer (0, 1, or 2) as the output."},
             {"role": "user", "content": f"Read the current state of the game: {state}, output an integer, either 0, 1, or 2 for the chicken to cross the road."}
         ],
         max_tokens=20  # Reduced max tokens for a more concise output
     )
-    print(response)
+
     action_match = re.search(r'\b\d+\b', response["choices"][0]["message"]["content"])
     if action_match:
         action = int(action_match.group())
     else:
         action = 0  # Default action if no valid action is found
 
-    print(action)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Action: {action}, Execution time: {execution_time} seconds")
+
     return action
+
 
 
 def act(state):
@@ -48,6 +56,16 @@ if __name__ == "__main__":
     env.seed(123)
     batch_size = 32
     episodes = 10
+    state = env.reset()
+    action0 = 0  # do nothing
+    observation0, reward0, terminal,truncated, info = env.step(action0)
+    print("Before processing: " + str(np.array(observation0).shape))
+    plt.imshow(np.array(observation0))
+    plt.show()
+    observation0 = pp.preprocess(observation0)
+    print("After processing: " + str(np.array(observation0).shape))
+    plt.imshow(np.array(np.squeeze(observation0)))
+    plt.show()
 
     # perform training for episodes
     for e in range(episodes):
