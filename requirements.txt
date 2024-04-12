@@ -1,0 +1,7 @@
+tensorflow
+keras
+gym
+opencv-python
+matplotlib
+gym[atari]
+gym[accept-rom-license]
