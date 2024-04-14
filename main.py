@@ -69,7 +69,7 @@ video_out = cv2.VideoWriter('freeway_video.mp4',fourcc, 30.0, (160,210))
 if __name__ == "__main__":
     ENV_NAME = "ALE/Freeway-v5"
     # Set up one instance of Freeway game environment
-    env = gym.make(ENV_NAME, render_mode='human', frameskip=(2, 5), max_episode_steps=500, mode=0)
+    env = gym.make(ENV_NAME, render_mode='human', frameskip=(2, 5), max_episode_steps=250, mode=0)
     # initialize seed
     env.seed(123)
 
